@@ -1,0 +1,25 @@
+from datetime import datetime, timedelta
+from airflow.sdk import dag, task 
+from airflow.models import Variable
+
+# Getting venv and script paths
+venv_path = Variable.get("project_venv_activate_path")
+script_path = Variable.get("stock_script_path")
+
+@dag(
+    schedule='@daily', 
+    start_date=datetime(2026,1,1), 
+    catchup=False,
+    tags=["finance", "neo4j"],
+    dag_id='neo4j_stock_pricing_pipeline'
+)
+def stock_pricing_dag():
+
+    @task.bash
+    def run_stock_update_script() -> str:
+        # source venv and kick off python file
+        return f"source {venv_path} && python {script_path}"
+
+    run_stock_update_script()
+
+neo4j_stock_pricing_pipeline = stock_pricing_dag()
